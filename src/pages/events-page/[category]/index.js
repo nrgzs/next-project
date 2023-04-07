@@ -1,8 +1,9 @@
 import Link from 'next/link';
 
-export default function ({ dataEvents }) {
+export default function ({ dataEvents, datacity }) {
   return (
     <>
+      <h2>Events in {datacity}</h2>
       {dataEvents.map((e) => {
         return (
           <div key={e.id} className="event-card">
@@ -42,12 +43,13 @@ export async function getStaticPaths() {
 
 export async function getStaticProps(context) {
   const id = context?.params.category;
+  console.log(context);
   const { allEvents } = await import('../../../../data/data.json');
   const data = allEvents.filter((ev) => ev.city === id);
   return {
     props: {
       dataEvents: data,
-      datacity: allEvents,
+      datacity: id,
     },
   };
 }
