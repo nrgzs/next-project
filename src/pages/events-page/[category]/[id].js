@@ -1,14 +1,22 @@
 import { useRouter } from 'next/router';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 export default function ({ data }) {
   const inptVal = useRef();
   const router = useRouter();
+  const [message, setmessage] = useState('');
 
   async function submitFunc(e) {
     e.preventDefault();
     const emailVal = inptVal.current.value;
     const eventId = router.query?.id;
+
+    const validEmail =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
+    if (!emailVal.match(validEmail)) {
+      setmessage('Please introduce a correct email address');
+    }
 
     try {
       const res = await fetch('./../../api/register-email', {
@@ -18,8 +26,12 @@ export default function ({ data }) {
         },
         body: JSON.stringify({ email: emailVal, id: eventId }),
       });
-      const data = await res.json();
-      console.log(data);
+
+      if (!res.ok) throw new Error(`Eroor: ${res.status}`);
+
+      const datamessage = await res.json();
+      setmessage(datamessage.message);
+      inptVal.current.value = '';
     } catch (error) {
       console.log(error);
     }
@@ -30,7 +42,7 @@ export default function ({ data }) {
       <h2>{data.title}</h2>
       <img src={data.image} alt={data.title} width={500} height={400}></img>
       <p>{data.description}</p>
-      <label>get register</label>
+      <label> Get Registered for this event!</label>
       <form>
         <input
           ref={inptVal}
@@ -38,6 +50,7 @@ export default function ({ data }) {
           placeholder="yourEmail@email.com"
         ></input>
         <button onClick={submitFunc}>Submit</button>
+        <p>{message}</p>
       </form>
     </>
   );

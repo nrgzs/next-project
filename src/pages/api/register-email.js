@@ -15,11 +15,29 @@ export default function handler(req, res) {
     fs.readFileSync(dataPath)
   );
 
-  const { email, id } = req.body;
-  console.log(dataPath);
+  if (!allEvents) {
+    return res.status(404).json({
+      message: 'Events data not found',
+    });
+  }
+
   if (method === 'POST') {
+    const { email, id } = req.body;
+
+    if (!email || !email.includes('@')) {
+      res.status(422).json({
+        message: 'Invalid Email adress',
+      });
+    }
+
     const newArr = allEvents.map((ev) => {
-      if (ev === id) {
+      if (ev.id === id) {
+        if (ev.emails_registered.includes(email)) {
+          res.status(409).json({
+            message: 'This Email has already been registered',
+          });
+        }
+
         return {
           ...ev,
           emails_registered: [...ev.emails_registered, email],
@@ -28,7 +46,6 @@ export default function handler(req, res) {
         return ev;
       }
     });
-    console.log(newArr);
 
     const test = path.join(process.cwd(), 'data', 'test.json');
 
@@ -37,7 +54,7 @@ export default function handler(req, res) {
       JSON.stringify({ events_categories, allEvents: newArr })
     );
 
-    res.status(200).json({
+    res.status(201).json({
       message: `You hass been registered with this email ${email} for this event ${id}  `,
     });
   }
